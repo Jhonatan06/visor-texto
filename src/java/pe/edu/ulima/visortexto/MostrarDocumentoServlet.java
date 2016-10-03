@@ -32,64 +32,9 @@ public class MostrarDocumentoServlet extends HttpServlet {
         String contenido = req.getParameter("contenido");
         String tipo = req.getParameter("tipo");
 
-        if (tipo.equals("pdf")) {
-
-            Document document = new Document();
-            try {
-                PdfWriter.getInstance(document, new FileOutputStream("doc.pdf"));
-                Chunk chunk = new Chunk(titulo);
-                Chapter chapter = new Chapter(new Paragraph(chunk), 1);
-                chapter.setNumberDepth(0);
-                chapter.add(new Paragraph(contenido));
-                document.open();
-                document.add(chapter);
-                document.close();
-            } catch (DocumentException ex) {
-                Logger.getLogger(MostrarDocumentoServlet.class.getName()).log(Level.SEVERE, null, ex);
-            }
-
-            resp.setContentType("application/pdf");
-            ByteArrayOutputStream baos = getByteArrayOutputStream("doc.pdf");
-
-            baos.writeTo(resp.getOutputStream());
-            resp.getOutputStream().flush();
-        } else if (tipo.equals("html")) {
-            PrintWriter out = resp.getWriter();
-            out.print("<html>");
-            out.print("<head>");
-            out.print("<link rel=\"stylesheet\" href=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css\"/>");
-            out.print("</head>");
-            out.print("<body class='container'>");
-            out.print("<h1>" + titulo + "</h1>");
-            out.print("<div class=\"panel panel-default\">");
-            out.print("<div class=\"panel-body\">" + contenido + "</div>");
-            out.print("</div?");
-            out.print("</body>");
-            out.print("</html>");
-        }
-
+        GestorRenderizado gestor = new GestorRenderizado();
+        ByteArrayOutputStream baos = gestor.renderizar(tipo, titulo, contenido);
+        baos.writeTo(resp.getOutputStream());
+        resp.getOutputStream().flush();
     }
-
-    private ByteArrayOutputStream getByteArrayOutputStream(String ruta) throws IOException {
-
-        File file = new File(ruta);
-
-        FileInputStream fis = new FileInputStream(file);
-
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        byte[] buf = new byte[256];
-        try {
-            for (int readNum; (readNum = fis.read(buf)) != -1;) {
-                bos.write(buf, 0, readNum); //no doubt here is 0
-                //Writes len bytes from the specified byte array starting at offset off to this byte array output stream.
-                System.out.println("read " + readNum + " bytes,");
-            }
-
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-
-        return bos;
-    }
-
 }
